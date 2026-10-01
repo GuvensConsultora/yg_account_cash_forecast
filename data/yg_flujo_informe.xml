@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Yagüven C.G. — Licencia LGPL-3. El flujo de fondos se arma por código (informe a medida) y se ve en el visor. -->
+<odoo noupdate="1">
+
+    <record id="informe_flujo_fondos" model="account.report">
+        <field name="name">Flujo de fondos proyectado</field>
+        <field name="sequence">20</field>
+        <field name="yg_handler">yg.flujo.fondos</field>
+        <field name="yg_menu" eval="True"/>
+    </record>
+
+</odoo>

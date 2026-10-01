@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Yagüven C.G. — Licencia LGPL-3. -->
+<odoo>
+
+    <record id="yg_flujo_compromiso_list" model="ir.ui.view">
+        <field name="name">yg.flujo.compromiso.list</field>
+        <field name="model">yg.flujo.compromiso</field>
+        <field name="arch" type="xml">
+            <list string="Compromisos futuros" decoration-muted="cumplido">
+                <field name="fecha_vencimiento"/>
+                <field name="name"/>
+                <field name="categoria" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="tipo"/>
+                <field name="recurrencia"/>
+                <field name="hasta" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="importe" sum="Total"/>
+                <field name="cumplido" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="yg_flujo_compromiso_form" model="ir.ui.view">
+        <field name="name">yg.flujo.compromiso.form</field>
+        <field name="model">yg.flujo.compromiso</field>
+        <field name="arch" type="xml">
+            <form string="Compromiso futuro">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Sueldos, alquiler, cobranza Edenred…"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="tipo" widget="radio"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="importe"/>
+                            <field name="fecha_vencimiento"/>
+                            <field name="recurrencia"/>
+                            <field name="hasta" invisible="recurrencia == 'unica'"/>
+                        </group>
+                        <group>
+                            <field name="categoria"/>
+                            <field name="partner_id"/>
+                            <field name="cumplido"/>
+                            <field name="cumplido_hasta" invisible="recurrencia == 'unica'"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <field name="nota" placeholder="Detalle, de dónde sale el importe…"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="yg_flujo_compromiso_search" model="ir.ui.view">
+        <field name="name">yg.flujo.compromiso.search</field>
+        <field name="model">yg.flujo.compromiso</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="categoria"/>
+                <field name="partner_id"/>
+                <filter name="pendientes" string="Pendientes" domain="[('cumplido', '=', False)]"/>
+                <filter name="egresos" string="Egresos" domain="[('tipo', '=', 'egreso')]"/>
+                <filter name="ingresos" string="Ingresos" domain="[('tipo', '=', 'ingreso')]"/>
+                <filter name="por_categoria" string="Categoría" context="{'group_by': 'categoria'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_yg_flujo_compromiso" model="ir.actions.act_window">
+        <field name="name">Compromisos futuros</field>
+        <field name="res_model">yg.flujo.compromiso</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_pendientes': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cargá lo que hay que pagar o cobrar y todavía no está en Odoo</p>
+            <p>Sueldos, alquiler, servicios, un aporte, una cobranza esperada. Cada uno con su fecha de vencimiento;
+                si se repite, con la frecuencia y hasta cuándo. Se suman al flujo de fondos proyectado.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_yg_flujo_compromiso" name="Compromisos futuros (flujo de fondos)"
+              parent="account.menu_finance_configuration" action="action_yg_flujo_compromiso"
+              sequence="91" groups="account.group_account_invoice"/>
+
+</odoo>
