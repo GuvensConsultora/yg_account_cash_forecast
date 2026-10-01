@@ -13,7 +13,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
 
-AGRUPACIONES = [("semana", "Por semana"), ("mes", "Por mes")]
+AGRUPACIONES = [("dia", "Por día"), ("semana", "Por semana"), ("mes", "Por mes")]
 SALDOS = [("extracto", "Saldo inicial según extracto bancario"), ("contable", "Saldo inicial según contabilidad")]
 
 
@@ -31,7 +31,8 @@ class YgFlujoFondos(models.AbstractModel):
     def _yg_opciones_extra(self, informe, previas):
         hoy = fields.Date.context_today(self)
         agrupar = previas.get("agrupar") or "semana"
-        horizonte = hoy + (relativedelta(weeks=13, days=-1) if agrupar == "semana" else relativedelta(months=12, days=-1))
+        horizonte = hoy + {"dia": relativedelta(days=30), "semana": relativedelta(weeks=13, days=-1),
+                           "mes": relativedelta(months=12, days=-1)}.get(agrupar, relativedelta(weeks=13, days=-1))
         return {"desde": fields.Date.to_string(hoy), "hasta": fields.Date.to_string(horizonte),
                 "agrupar": "semana", "saldo_inicial": "extracto"}
 
@@ -39,7 +40,7 @@ class YgFlujoFondos(models.AbstractModel):
     def _yg_filtros_extra(self, informe, opciones):
         return [
             {"clave": "agrupar", "etiqueta": "Agrupar", "icono": "▤", "valores": AGRUPACIONES,
-             "reinicia": ["desde", "hasta"]},  # al cambiar, vuelve al horizonte por defecto (13 semanas / 12 meses)
+             "reinicia": ["desde", "hasta"]},  # al cambiar, vuelve al horizonte por defecto (31 días / 13 semanas / 12 meses)
             {"clave": "saldo_inicial", "etiqueta": "Saldo inicial", "icono": "🏦", "valores": SALDOS},
         ]
 
@@ -51,7 +52,10 @@ class YgFlujoFondos(models.AbstractModel):
         tramos = []
         inicio = desde
         while inicio <= hasta:
-            if opciones.get("agrupar") == "mes":
+            if opciones.get("agrupar") == "dia":
+                fin = inicio
+                nombre = inicio.strftime("%d/%m")
+            elif opciones.get("agrupar") == "mes":
                 fin = (inicio + relativedelta(day=1, months=1)) - timedelta(days=1)
                 nombre = inicio.strftime("%m/%Y")
             else:
